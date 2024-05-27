@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import './Calendar.css'; // 새로 만든 CSS 파일 불러오기
 import './App.css';
+
+import CloudImg from './cloud.png';
+import BlackCloudImg from './cloud_black.png';
+import PlusImg from './plus.png';
+import DeleteImg from './delete.png';
+import TitleImg from './Title.png';
 
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -50,10 +57,10 @@ function App() {
     const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
     return todos[dateString] || [];
   };
-  
 
   return (
     <div className="App">
+    <img src={TitleImg} className="title-img" />
       <h1 className="app-title">할 일 목록</h1>
       <div className="app-container">
         <div className="calendar-container">
@@ -69,16 +76,24 @@ function App() {
               onChange={(e) => setNewTodo(e.target.value)} 
               placeholder="새 할 일을 추가하세요" 
             />
-            <button className="add-button" onClick={addTodo}>추가</button>
+            <button className="add-button" onClick={addTodo}>
+              <img src={PlusImg} alt="Add" className="plus-img" />
+            </button>
           </div>
           <ul className="todo-list">
             {getCurrentTodos().map((todo, index) => (
               <li key={index} className={`todo-item ${todo.completed ? "completed" : ""}`}>
-                <span className="todo-text">{todo.text}</span>
                 <button className="complete-button" onClick={() => toggleTodo(date, index)}>
-                  {todo.completed ? "취소" : "완료"}
+                  <img 
+                    src={todo.completed ? CloudImg : BlackCloudImg} 
+                    alt={todo.completed ? "취소" : "완료"} 
+                    className="cloud-img"
+                  />
                 </button>
-                <button className="delete-button" onClick={() => deleteTodo(date, index)}>삭제</button>
+                <span className="todo-text">{todo.text}</span>
+                <button className="delete-button" onClick={() => deleteTodo(date, index)}>
+                  <img src={DeleteImg} alt="del" className="delete-img" />
+                </button>
               </li>
             ))}
           </ul>

@@ -12,9 +12,10 @@ body {
 .App {
   text-align: center;
   width: 80%;
+  height: 80%;
   margin: 0 auto;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #ffffff;
+  background-color: #FFFBF1;
   padding: 20px;
   border-radius: 10px;
 }
@@ -41,7 +42,7 @@ body {
   flex: 2;
   text-align: left;
   padding: 10px;
-  background-color: #fafafa;
+  background-color: #FFFEF8;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -137,14 +138,49 @@ body {
   width: 100%;
   border: none;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .react-calendar__tile--active {
-  background-color: #0b79f7 !important;
+  background-color: #BEE1F4 !important;
   color: white !important;
 }
 
 .react-calendar__tile--now {
   background-color: #ffe6e6;
+}
+
+.add-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.plus-img {
+  width: 40px; 
+  height: 40px; 
+}
+
+.complete-button, .delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.complete-button:hover, .delete-button:hover {
+  background: none;
+}
+
+.cloud-img {
+  background-color: transparent;
+  pointer-events: none;
+  width: 40px; 
+  height: 30px; 
+}
+
+.delete-img{
+  width: 10px; 
+  height: 10px;
+  margin-right: 10px;
 }
