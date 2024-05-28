@@ -16,18 +16,29 @@ import { ko } from 'date-fns/locale';
 function App() {
   const [date, setDate] = useState(new Date());
   const [todos, setTodos] = useState({});
-  const [newTodo, setNewTodo] = useState("");
+  const [todoTitle, setTodoTitle] = useState("할 일 추가:"); // 제목 상태 추가
 
-  const addTodo = () => {
-    if (newTodo.trim() !== "") {
-      const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
-      const updatedTodos = {
-        ...todos,
-        [dateString]: [...(todos[dateString] || []), { text: newTodo, completed: false }]
-      };
-      setTodos(updatedTodos);
-      setNewTodo("");
-    }
+  const addDefaultTodo = () => {
+    const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
+    const updatedTodos = {
+      ...todos,
+      [dateString]: [...(todos[dateString] || []), { text: "Contant", completed: false, isEditing: true }]
+    };
+    setTodos(updatedTodos);
+  };
+
+  const updateTodoText = (date, index, text) => {
+    const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
+    const updatedTodos = {
+      ...todos,
+      [dateString]: todos[dateString].map((todo, i) => {
+        if (i === index) {
+          return { ...todo, text };
+        }
+        return todo;
+      })
+    };
+    setTodos(updatedTodos);
   };
 
   const toggleTodo = (date, index) => {
@@ -36,7 +47,7 @@ function App() {
       ...todos,
       [dateString]: todos[dateString].map((todo, i) => {
         if (i === index) {
-          return { ...todo, completed: !todo.completed };
+          return { ...todo, completed: !todo.completed, isEditing: false };
         }
         return todo;
       })
@@ -60,7 +71,7 @@ function App() {
 
   return (
     <div className="App">
-    <img src={TitleImg} className="title-img" />
+      <img src={TitleImg} className="title-img" alt="타이틀 이미지" />
       <h1 className="app-title">할 일 목록</h1>
       <div className="app-container">
         <div className="calendar-container">
@@ -69,14 +80,13 @@ function App() {
         <div className="todo-container">
           <h2 className="todo-title">{format(date, 'PPP', { locale: ko })}의 할 일</h2>
           <div className="todo-input-container">
-            <input 
-              className="todo-input"
-              type="text" 
-              value={newTodo} 
-              onChange={(e) => setNewTodo(e.target.value)} 
-              placeholder="새 할 일을 추가하세요" 
+            <input
+              className="add-todo-title"
+              type="text"
+              value={todoTitle}
+              onChange={(e) => setTodoTitle(e.target.value)} // 제목 변경 이벤트 핸들러
             />
-            <button className="add-button" onClick={addTodo}>
+            <button className="add-button" onClick={addDefaultTodo}>
               <img src={PlusImg} alt="Add" className="plus-img" />
             </button>
           </div>
@@ -90,7 +100,46 @@ function App() {
                     className="cloud-img"
                   />
                 </button>
-                <span className="todo-text">{todo.text}</span>
+                {todo.isEditing ? (
+                  <input
+                    className="todo-input"
+                    type="text"
+                    value={todo.text}
+                    onChange={(e) => updateTodoText(date, index, e.target.value)}
+                    onBlur={() => {
+                      const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
+                      const updatedTodos = {
+                        ...todos,
+                        [dateString]: todos[dateString].map((todo, i) => {
+                          if (i === index) {
+                            return { ...todo, isEditing: false };
+                          }
+                          return todo;
+                        })
+                      };
+                      setTodos(updatedTodos);
+                    }}
+                  />
+                ) : (
+                  <span
+                    className="todo-text"
+                    onDoubleClick={() => {
+                      const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
+                      const updatedTodos = {
+                        ...todos,
+                        [dateString]: todos[dateString].map((todo, i) => {
+                          if (i === index) {
+                            return { ...todo, isEditing: true };
+                          }
+                          return todo;
+                        })
+                      };
+                      setTodos(updatedTodos);
+                    }}
+                  >
+                    {todo.text}
+                  </span>
+                )}
                 <button className="delete-button" onClick={() => deleteTodo(date, index)}>
                   <img src={DeleteImg} alt="del" className="delete-img" />
                 </button>
