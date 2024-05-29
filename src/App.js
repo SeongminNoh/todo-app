@@ -4,11 +4,11 @@ import 'react-calendar/dist/Calendar.css';
 import './Calendar.css'; // 새로 만든 CSS 파일 불러오기
 import './App.css';
 
-import CloudImg from './cloud.png';
-import BlackCloudImg from './cloud_black.png';
-import PlusImg from './plus.png';
-import DeleteImg from './delete.png';
-import TitleImg from './Title.png';
+import CloudImg from './asset/cloud.png';
+import BlackCloudImg from './asset/cloud_black.png';
+import PlusImg from './asset/plus.png';
+import DeleteImg from './asset/elete.png';
+import TitleImg from './asset/Title.png';
 
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
