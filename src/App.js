@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import './Calendar.css'; // 새로 만든 CSS 파일 불러오기
-import './App.css';
-
-import CloudImg from './asset/cloud.png';
-import BlackCloudImg from './asset/cloud_black.png';
-import PlusImg from './asset/plus.png';
-import DeleteImg from './asset/elete.png';
-import TitleImg from './asset/Title.png';
-
+import { View, Text, TextInput, TouchableOpacity, Image, FlatList, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+import CloudImg from './assets/cloud.png';
+import BlackCloudImg from './assets/cloud_black.png';
+import PlusImg from './assets/plus.png';
+import DeleteImg from './assets/delete.png';
+import TitleImg from './assets/Title.png';
+
+import styles from './styles';
 
 function App() {
   const [date, setDate] = useState(new Date());
   const [todos, setTodos] = useState({});
   const [todoTitle, setTodoTitle] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(true);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const addDefaultTodo = () => {
     const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
@@ -71,13 +71,13 @@ function App() {
   };
 
   const handleTitleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.nativeEvent.key === 'Enter') {
       setIsEditingTitle(false);
     }
   };
 
   const handleTodoKeyDown = (e, date, index) => {
-    if (e.key === 'Enter') {
+    if (e.nativeEvent.key === 'Enter') {
       const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
       const updatedTodos = {
         ...todos,
@@ -92,58 +92,72 @@ function App() {
     }
   };
 
+  const onDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(false);
+    setDate(currentDate);
+  };
+
   return (
-    <div className="App">
-      <img src={TitleImg} className="title-img" alt="타이틀 이미지" />
-      <h1 className="app-title">할 일 목록</h1>
-      <div className="app-container">
-        <div className="calendar-container">
-          <Calendar onChange={setDate} value={date} locale="ko-KR" />
-        </div>
-        <div className="todo-container">
-          <h2 className="todo-title">{format(date, 'PPP', { locale: ko })}의 할 일</h2>
-          <div className="todo-input-container">
-            {isEditingTitle ? (
-              <input
-                className="add-todo-title"
-                type="text"
-                value={todoTitle}
-                onChange={(e) => setTodoTitle(e.target.value)} // 제목 변경 이벤트 핸들러
-                onKeyDown={handleTitleKeyDown} // 엔터 키 이벤트 핸들러 추가
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.app}>
+        <Image source={TitleImg} style={styles.titleImg} />
+        <Text style={styles.appTitle}>할 일 목록</Text>
+        <View style={styles.appContainer}>
+          <View style={styles.calendarContainer}>
+            <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+              <Text>{format(date, 'PPP', { locale: ko })}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="default"
+                onChange={onDateChange}
+                locale="ko-KR"
               />
-            ) : (
-              <span className="todo-title-text" onDoubleClick={() => setIsEditingTitle(true)}>
-                {todoTitle}
-              </span>
             )}
-            {!isEditingTitle && (
-              <button className="add-button" onClick={addDefaultTodo}>
-                <img src={PlusImg} alt="Add" className="plus-img" />
-              </button>
-            )}
-          </div>
-          <ul className="todo-list">
-            {getCurrentTodos().map((todo, index) => (
-              <li key={index} className={`todo-item ${todo.completed ? "completed" : ""}`}>
-                <button className="complete-button" onClick={() => toggleTodo(date, index)}>
-                  <img 
-                    src={todo.completed ? CloudImg : BlackCloudImg} 
-                    alt={todo.completed ? "취소" : "완료"} 
-                    className="cloud-img"
-                  />
-                </button>
-                {todo.isEditing ? (
-                  <input
-                    className="todo-input"
-                    type="text"
-                    value={todo.text}
-                    onChange={(e) => updateTodoText(date, index, e.target.value)}
-                    onKeyDown={(e) => handleTodoKeyDown(e, date, index)} // 엔터 키 이벤트 핸들러 추가
-                  />
-                ) : (
-                  <span
-                    className="todo-text"
-                    onDoubleClick={() => {
+          </View>
+          <View style={styles.todoContainer}>
+            <Text style={styles.todoTitle}>{format(date, 'PPP', { locale: ko })}의 할 일</Text>
+            <View style={styles.todoInputContainer}>
+              {isEditingTitle ? (
+                <TextInput
+                  style={styles.addTodoTitle}
+                  value={todoTitle}
+                  onChangeText={(text) => setTodoTitle(text)}
+                  onSubmitEditing={handleTitleKeyDown}
+                />
+              ) : (
+                <TouchableOpacity onPress={() => setIsEditingTitle(true)}>
+                  <Text style={styles.todoTitleText}>{todoTitle}</Text>
+                </TouchableOpacity>
+              )}
+              {!isEditingTitle && (
+                <TouchableOpacity style={styles.addButton} onPress={addDefaultTodo}>
+                  <Image source={PlusImg} style={styles.plusImg} />
+                </TouchableOpacity>
+              )}
+            </View>
+            <FlatList
+              data={getCurrentTodos()}
+              renderItem={({ item, index }) => (
+                <View key={index} style={[styles.todoItem, item.completed && styles.completed]}>
+                  <TouchableOpacity style={styles.completeButton} onPress={() => toggleTodo(date, index)}>
+                    <Image 
+                      source={item.completed ? CloudImg : BlackCloudImg} 
+                      style={styles.cloudImg} 
+                    />
+                  </TouchableOpacity>
+                  {item.isEditing ? (
+                    <TextInput
+                      style={styles.todoInput}
+                      value={item.text}
+                      onChangeText={(text) => updateTodoText(date, index, text)}
+                      onSubmitEditing={(e) => handleTodoKeyDown(e, date, index)}
+                    />
+                  ) : (
+                    <TouchableOpacity onPress={() => {
                       const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
                       const updatedTodos = {
                         ...todos,
@@ -155,20 +169,21 @@ function App() {
                         })
                       };
                       setTodos(updatedTodos);
-                    }}
-                  >
-                    {todo.text}
-                  </span>
-                )}
-                <button className="delete-button" onClick={() => deleteTodo(date, index)}>
-                  <img src={DeleteImg} alt="del" className="delete-img" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
+                    }}>
+                      <Text style={styles.todoText}>{item.text}</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTodo(date, index)}>
+                    <Image source={DeleteImg} style={styles.deleteImg} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              keyExtractor={(item, index) => index.toString()}
+            />
+          </View>
+        </View>
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 
