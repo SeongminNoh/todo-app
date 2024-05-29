@@ -7,7 +7,7 @@ import './App.css';
 import CloudImg from './asset/cloud.png';
 import BlackCloudImg from './asset/cloud_black.png';
 import PlusImg from './asset/plus.png';
-import DeleteImg from './asset/elete.png';
+import DeleteImg from './asset/delete.png';
 import TitleImg from './asset/Title.png';
 
 import { format } from 'date-fns';
@@ -26,6 +26,10 @@ function App() {
       [dateString]: [...(todos[dateString] || []), { text: "", completed: false, isEditing: true }]
     };
     setTodos(updatedTodos);
+
+    if (!todoTitle[dateString]) {
+      setTodoTitle({ ...todoTitle, [dateString]: "" });
+    }
   };
 
   const updateTodoText = (date, index, text) => {
@@ -107,13 +111,13 @@ function App() {
               <input
                 className="add-todo-title"
                 type="text"
-                value={todoTitle}
-                onChange={(e) => setTodoTitle(e.target.value)} // 제목 변경 이벤트 핸들러
+                value={todoTitle[format(date, 'yyyy-MM-dd', { locale: ko })] || ""} // Accessing todoTitle based on date
+                onChange={(e) => setTodoTitle({ ...todoTitle, [format(date, 'yyyy-MM-dd', { locale: ko })]: e.target.value })} // Update todoTitle based on date
                 onKeyDown={handleTitleKeyDown} // 엔터 키 이벤트 핸들러 추가
               />
             ) : (
               <span className="todo-title-text" onDoubleClick={() => setIsEditingTitle(true)}>
-                {todoTitle}
+                {todoTitle[format(date, 'yyyy-MM-dd', { locale: ko })] || ""} {/* Accessing todoTitle based on date */}
               </span>
             )}
             {!isEditingTitle && (
