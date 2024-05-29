@@ -16,13 +16,14 @@ import { ko } from 'date-fns/locale';
 function App() {
   const [date, setDate] = useState(new Date());
   const [todos, setTodos] = useState({});
-  const [todoTitle, setTodoTitle] = useState("할 일 추가:"); // 제목 상태 추가
+  const [todoTitle, setTodoTitle] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(true);
 
   const addDefaultTodo = () => {
     const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
     const updatedTodos = {
       ...todos,
-      [dateString]: [...(todos[dateString] || []), { text: "Contant", completed: false, isEditing: true }]
+      [dateString]: [...(todos[dateString] || []), { text: "", completed: false, isEditing: true }]
     };
     setTodos(updatedTodos);
   };
@@ -69,6 +70,28 @@ function App() {
     return todos[dateString] || [];
   };
 
+  const handleTitleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleTodoKeyDown = (e, date, index) => {
+    if (e.key === 'Enter') {
+      const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
+      const updatedTodos = {
+        ...todos,
+        [dateString]: todos[dateString].map((todo, i) => {
+          if (i === index) {
+            return { ...todo, isEditing: false };
+          }
+          return todo;
+        })
+      };
+      setTodos(updatedTodos);
+    }
+  };
+
   return (
     <div className="App">
       <img src={TitleImg} className="title-img" alt="타이틀 이미지" />
@@ -80,15 +103,24 @@ function App() {
         <div className="todo-container">
           <h2 className="todo-title">{format(date, 'PPP', { locale: ko })}의 할 일</h2>
           <div className="todo-input-container">
-            <input
-              className="add-todo-title"
-              type="text"
-              value={todoTitle}
-              onChange={(e) => setTodoTitle(e.target.value)} // 제목 변경 이벤트 핸들러
-            />
-            <button className="add-button" onClick={addDefaultTodo}>
-              <img src={PlusImg} alt="Add" className="plus-img" />
-            </button>
+            {isEditingTitle ? (
+              <input
+                className="add-todo-title"
+                type="text"
+                value={todoTitle}
+                onChange={(e) => setTodoTitle(e.target.value)} // 제목 변경 이벤트 핸들러
+                onKeyDown={handleTitleKeyDown} // 엔터 키 이벤트 핸들러 추가
+              />
+            ) : (
+              <span className="todo-title-text" onDoubleClick={() => setIsEditingTitle(true)}>
+                {todoTitle}
+              </span>
+            )}
+            {!isEditingTitle && (
+              <button className="add-button" onClick={addDefaultTodo}>
+                <img src={PlusImg} alt="Add" className="plus-img" />
+              </button>
+            )}
           </div>
           <ul className="todo-list">
             {getCurrentTodos().map((todo, index) => (
@@ -106,19 +138,7 @@ function App() {
                     type="text"
                     value={todo.text}
                     onChange={(e) => updateTodoText(date, index, e.target.value)}
-                    onBlur={() => {
-                      const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
-                      const updatedTodos = {
-                        ...todos,
-                        [dateString]: todos[dateString].map((todo, i) => {
-                          if (i === index) {
-                            return { ...todo, isEditing: false };
-                          }
-                          return todo;
-                        })
-                      };
-                      setTodos(updatedTodos);
-                    }}
+                    onKeyDown={(e) => handleTodoKeyDown(e, date, index)} // 엔터 키 이벤트 핸들러 추가
                   />
                 ) : (
                   <span
