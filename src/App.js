@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import './Calendar.css'; // 새로 만든 CSS 파일 불러오기
-import './App.css';
-
-import CloudImg from './asset/cloud.png';
-import BlackCloudImg from './asset/cloud_black.png';
-import PlusImg from './asset/plus.png';
-import DeleteImg from './asset/delete.png';
-import TitleImg from './asset/Title.png';
-
+import { View, Text, TextInput, Button, Image, TouchableOpacity, ScrollView } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+
+import CloudImg from './assets/cloud.png';
+import BlackCloudImg from './assets/cloud_black.png';
+import PlusImg from './assets/plus.png';
+import DeleteImg from './assets/delete.png';
+import TitleImg from './assets/Title.png';
+
+import styles from './styles'; // 스타일 파일 import
 
 function App() {
   const [date, setDate] = useState(new Date());
   const [todos, setTodos] = useState({});
-  const [todoTitle, setTodoTitle] = useState("");
+  const [todoTitle, setTodoTitle] = useState({});
   const [isEditingTitle, setIsEditingTitle] = useState(true);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const addDefaultTodo = () => {
     const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
@@ -97,57 +97,69 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <img src={TitleImg} className="title-img" alt="타이틀 이미지" />
-      <h1 className="app-title">할 일 목록</h1>
-      <div className="app-container">
-        <div className="calendar-container">
-          <Calendar onChange={setDate} value={date} locale="ko-KR" />
-        </div>
-        <div className="todo-container">
-          <h2 className="todo-title">{format(date, 'PPP', { locale: ko })}의 할 일</h2>
-          <div className="todo-input-container">
+    <View style={styles.app}>
+      <Image source={TitleImg} style={styles.titleImg} />
+      <Text style={styles.appTitle}>할 일 목록</Text>
+      <View style={styles.appContainer}>
+        <View style={styles.calendarContainer}>
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <Text style={styles.dateText}>{format(date, 'PPP', { locale: ko })}</Text>
+          </TouchableOpacity>
+          {showDatePicker && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              display="default"
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) {
+                  setDate(selectedDate);
+                }
+              }}
+            />
+          )}
+        </View>
+        <View style={styles.todoContainer}>
+          <Text style={styles.todoTitle}>{format(date, 'PPP', { locale: ko })}의 할 일</Text>
+          <View style={styles.todoInputContainer}>
             {isEditingTitle ? (
-              <input
-                className="add-todo-title"
-                type="text"
-                value={todoTitle[format(date, 'yyyy-MM-dd', { locale: ko })] || ""} // Accessing todoTitle based on date
-                onChange={(e) => setTodoTitle({ ...todoTitle, [format(date, 'yyyy-MM-dd', { locale: ko })]: e.target.value })} // Update todoTitle based on date
-                onKeyDown={handleTitleKeyDown} // 엔터 키 이벤트 핸들러 추가
+              <TextInput
+                style={styles.addTodoTitle}
+                value={todoTitle[format(date, 'yyyy-MM-dd', { locale: ko })] || ""}
+                onChangeText={(text) => setTodoTitle({ ...todoTitle, [format(date, 'yyyy-MM-dd', { locale: ko })]: text })}
+                onSubmitEditing={handleTitleKeyDown}
               />
             ) : (
-              <span className="todo-title-text" onDoubleClick={() => setIsEditingTitle(true)}>
-                {todoTitle[format(date, 'yyyy-MM-dd', { locale: ko })] || ""} {/* Accessing todoTitle based on date */}
-              </span>
+              <Text style={styles.todoTitleText} onPress={() => setIsEditingTitle(true)}>
+                {todoTitle[format(date, 'yyyy-MM-dd', { locale: ko })] || ""}
+              </Text>
             )}
             {!isEditingTitle && (
-              <button className="add-button" onClick={addDefaultTodo}>
-                <img src={PlusImg} alt="Add" className="plus-img" />
-              </button>
+              <TouchableOpacity style={styles.addButton} onPress={addDefaultTodo}>
+                <Image source={PlusImg} style={styles.plusImg} />
+              </TouchableOpacity>
             )}
-          </div>
-          <ul className="todo-list">
+          </View>
+          <ScrollView style={styles.todoList}>
             {getCurrentTodos().map((todo, index) => (
-              <li key={index} className={`todo-item ${todo.completed ? "completed" : ""}`}>
-                <button className="complete-button" onClick={() => toggleTodo(date, index)}>
-                  <img 
-                    src={todo.completed ? CloudImg : BlackCloudImg} 
-                    alt={todo.completed ? "취소" : "완료"} 
-                    className="cloud-img"
+              <View key={index} style={[styles.todoItem, todo.completed && styles.completed]}>
+                <TouchableOpacity style={styles.completeButton} onPress={() => toggleTodo(date, index)}>
+                  <Image 
+                    source={todo.completed ? CloudImg : BlackCloudImg} 
+                    style={styles.cloudImg} 
                   />
-                </button>
+                </TouchableOpacity>
                 {todo.isEditing ? (
-                  <input
-                    className="todo-input"
-                    type="text"
+                  <TextInput
+                    style={styles.todoInput}
                     value={todo.text}
-                    onChange={(e) => updateTodoText(date, index, e.target.value)}
-                    onKeyDown={(e) => handleTodoKeyDown(e, date, index)} // 엔터 키 이벤트 핸들러 추가
+                    onChangeText={(text) => updateTodoText(date, index, text)}
+                    onSubmitEditing={(e) => handleTodoKeyDown(e, date, index)}
                   />
                 ) : (
-                  <span
-                    className="todo-text"
-                    onDoubleClick={() => {
+                  <Text
+                    style={styles.todoText}
+                    onPress={() => {
                       const dateString = format(date, 'yyyy-MM-dd', { locale: ko });
                       const updatedTodos = {
                         ...todos,
@@ -162,17 +174,17 @@ function App() {
                     }}
                   >
                     {todo.text}
-                  </span>
+                  </Text>
                 )}
-                <button className="delete-button" onClick={() => deleteTodo(date, index)}>
-                  <img src={DeleteImg} alt="del" className="delete-img" />
-                </button>
-              </li>
+                <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTodo(date, index)}>
+                  <Image source={DeleteImg} style={styles.deleteImg} />
+                </TouchableOpacity>
+              </View>
             ))}
-          </ul>
-        </div>
-      </div>
-    </div>
+          </ScrollView>
+        </View>
+      </View>
+    </View>
   );
 }
 
